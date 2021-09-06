@@ -1,5 +1,3 @@
-var CACHE_NAME = 'first-app-v1';
-var CACHE_DYNAMIC = 'first-app-dinamic-v1';
 var urlsToCache = [    
     '/',    
     '/index.html',
@@ -8,12 +6,14 @@ var urlsToCache = [
     '/src/css/help.css',
     '/src/js/app.js',
     '/src/js/feed.js'
-]
+];
+
+var expectedCaches = ['first-app-v2','first-app-dinamic-v2'];
 
 self.addEventListener('install', function(event) {
     console.log('soy el service worker');    
     event.waitUntil(
-        caches.open(CACHE_NAME)
+        caches.open(expectedCaches[0])
             .then (function (cache) {
                 return cache.addAll( urlsToCache );
             },  function (err){
@@ -32,24 +32,20 @@ self.addEventListener('activate', function(event){
     
     event.waitUntil(
         caches.keys()
-            .then(function(keyList) {
-            //trabajamos con todas las keys de la cache
-            //nombres de cada cache
-                return Promise.all(keyList.map(function(key) {
-                    if (key != CACHE_NAME && key != CACHE_DYNAMIC){
-                    //si no es la misma que la que estamos queriendo usar actualmente
-                        console.log('[SW] Removing old cache version', key);
+            .then(keys => Promise.all(
+                keys.map( key => {
+                    if (!expectedCaches.includes(key)) {
                         return caches.delete(key);
-                        //la borramos para evitar incosistencias
-                        //entonces siempre se va a trabajar con la ultima
                     }
-                }))
-
+                })
+            ))
+            .then(() => {
+                console.log('[SW] updated caches');
             })
-    )
+    );
 
     return self.clients.claim();
-})
+});
 
 self.addEventListener('fetch', function(event) {
     console.log('Fetch en curso....', event);
@@ -63,7 +59,7 @@ self.addEventListener('fetch', function(event) {
                     //en esta parte online haria el fetch
                         .then( function (res){
                         //de tener exito y salir por el resolve del fetch
-                            return caches.open(CACHE_DYNAMIC)
+                            return caches.open(expectedCaches)
                             //va a abrir la cache dinamica
                                 .then( function (cache) {
                                 //y va a almacenar la url de la request y su response
