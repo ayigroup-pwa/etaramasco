@@ -9,7 +9,7 @@ var urlsToCache = [
     '/src/js/feed.js'
 ];
 
-var expectedCaches = ['first-app-v1', 'first-app-dinamic-v1'];
+var expectedCaches = ['first-app-v2', 'first-app-dinamic-v2'];
 
 self.addEventListener('install', function(event) {
     console.log('soy el service worker');    

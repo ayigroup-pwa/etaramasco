@@ -23,10 +23,10 @@
     return false;
   });
 
-  fetch('https://httpbin.org/ip')
+ /* fetch('https://httpbin.org/ip')
     .then((response) => {
       console.log('Fetch API');
       console.log(response);
       return response.json();
-    });
+    }); */
   
