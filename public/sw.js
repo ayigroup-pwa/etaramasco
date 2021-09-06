@@ -1,6 +1,7 @@
 var urlsToCache = [    
     '/',    
     '/index.html',
+    'offline.html',
     '/src/css/app.css',
     '/src/css/feed.css',
     '/src/css/help.css',
@@ -8,7 +9,7 @@ var urlsToCache = [
     '/src/js/feed.js'
 ];
 
-var expectedCaches = ['first-app-v2','first-app-dinamic-v2'];
+var expectedCaches = ['first-app-v1', 'first-app-dinamic-v1'];
 
 self.addEventListener('install', function(event) {
     console.log('soy el service worker');    
@@ -59,7 +60,7 @@ self.addEventListener('fetch', function(event) {
                     //en esta parte online haria el fetch
                         .then( function (res){
                         //de tener exito y salir por el resolve del fetch
-                            return caches.open(expectedCaches)
+                            return caches.open(expectedCaches[1])
                             //va a abrir la cache dinamica
                                 .then( function (cache) {
                                 //y va a almacenar la url de la request y su response
@@ -71,6 +72,10 @@ self.addEventListener('fetch', function(event) {
                         //va a salir por este catch cuando intente hacer el fetch y se este offline
                         //tambien podria llegar a entrar por algun error en un put
                             console.log('err');
+                            return caches.open(expectedCaches[0])
+                                .then(function (cache) {
+                                  return cache.match('/offline.html');
+                                })
                         })
                 }                            
             })
