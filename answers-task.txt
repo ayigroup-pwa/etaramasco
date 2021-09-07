@@ -1,0 +1,4 @@
+1. The caching strategy using is "cache with network fallback". Because first it is queried if the resource is in the cache, and if is not found, it is searched on the network.
+
+
+
