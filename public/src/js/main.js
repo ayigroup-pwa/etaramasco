@@ -19,7 +19,6 @@ button.addEventListener('click', function(event) {
 });
 
 
-/*
 fetch('https://httpbin.org/ip')
   .then(function(res) {
     return res.json();
@@ -29,7 +28,6 @@ fetch('https://httpbin.org/ip')
     box.style.height = (data.origin.substr(0, 2) * 5) + 'px';
   });
 
-*/
 
 
 /*
@@ -37,8 +35,6 @@ fetch('https://httpbin.org/ip')
 Caching strategy => Cache, then network
 
 A request is sent to the cache and to the network, the first to respond will depend on the situation in which we are
-
-*/
 
 var netData = false;
 
@@ -71,3 +67,5 @@ if ( 'caches' in window){
       }
     })
 }
+
+*/

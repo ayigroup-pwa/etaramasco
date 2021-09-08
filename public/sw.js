@@ -1,5 +1,5 @@
 
-var CACHE_STATIC_NAME = 'static-v7';
+var CACHE_STATIC_NAME = 'static-v2';
 var CACHE_DYNAMIC_NAME = 'dynamic-v0';
 
 self.addEventListener('install', function(event) {
@@ -12,7 +12,8 @@ self.addEventListener('install', function(event) {
           '/src/css/app.css',
           '/src/css/main.css',
           '/src/js/main.js',
-          '/src/js/material.min.js',
+          '/src/js/material.min.js',  
+          '/offline.html',        
           'https://fonts.googleapis.com/css?family=Roboto:400,700',
           'https://fonts.googleapis.com/icon?family=Material+Icons',
           'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
@@ -38,6 +39,7 @@ self.addEventListener('activate', function(event) {
 /*
 1. Caching strategy => Cache with network fallback.
 
+
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request)
@@ -54,13 +56,16 @@ self.addEventListener('fetch', function(event) {
                 });
             })
             .catch(function(err) {
-
+              console.log('Fetch failed', err);
+              return caches.match('/offline.html');
             });
         }
       })
   );
 });
+
 */
+
 
 /* 
 2. Caching strategy => Network only
@@ -84,6 +89,8 @@ self.addEventListener('fetch', function (event) {
 
 Fetch events in SW will only succeed when the resource is cached.
 
+*/
+
 self.addEventListener('fetch', function (event) {
   event.respondWith(
     caches.match(event.request)
@@ -91,13 +98,12 @@ self.addEventListener('fetch', function (event) {
         if (response) {
           return response
         } else {
-          console.log('No se encontraron coincidencias en cache')
+          return caches.match('/offline.html');
         }
       })      
   )
 })
 
-*/
 
 /* 
 4. Caching strategy => Network, cache fallback
@@ -132,21 +138,34 @@ self.addEventListener ('fetch', function (event) {
 
 In the "fetch" event of the SW, the network responses will be cached.
 
-*/
-
 self.addEventListener ( 'fetch' , function (event) {
-
   event.respondWith(    
     fetch(event.request)
+    //se realiza el fetch a la network donde el SW actua de proxy
       .then(function (res) {
+      //de tener exito el fetch
         return caches.open(CACHE_DYNAMIC_NAME)
           .then(function (cache) {
+            //se cachea el recurso en la cache dinamica
             cache.put(event.request.url, res.clone());
+            //se cachea con el put (key, value)
             return res;
           })
       })
-      .catch(function (err) {
-        return caches.match(event.request);
-      })
+      .catch(function () {
+      //de fallar el fetch del evento que atravezo el SW
+            return caches.match(event.request)            
+            //busca en la cache para ver si ya esta cacheado el recurso que se necesita
+              .then( function (response){
+                if (response){
+                //si el recurso fue cacheado previamente
+                  return response
+                }                
+                //de no estar se redige al usuario a la pagina de fallback
+                return caches.match('/offline.html');
+              })
+        })
   );
 })
+
+*/
