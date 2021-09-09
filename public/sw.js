@@ -1,23 +1,24 @@
 
-var CACHE_STATIC_NAME = 'static-v1';
+var CACHE_STATIC_NAME = 'static-v4';
 var CACHE_DYNAMIC_NAME = 'dynamic-v0';
+var urlsToCache = [
+  '/',
+  '/index.html',
+  '/src/css/app.css',
+  '/src/css/main.css',
+  '/src/js/main.js',
+  '/src/js/material.min.js',  
+  '/offline.html',        
+  'https://fonts.googleapis.com/css?family=Roboto:400,700',
+  'https://fonts.googleapis.com/icon?family=Material+Icons',
+  'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
+];
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_STATIC_NAME)
       .then(function(cache) {
-        cache.addAll([
-          '/',
-          '/index.html',
-          '/src/css/app.css',
-          '/src/css/main.css',
-          '/src/js/main.js',
-          '/src/js/material.min.js',  
-          '/offline.html',        
-          'https://fonts.googleapis.com/css?family=Roboto:400,700',
-          'https://fonts.googleapis.com/icon?family=Material+Icons',
-          'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
-        ]);
+        cache.addAll(urlsToCache);
       })
   )
   self.skipWaiting();
@@ -34,12 +35,13 @@ self.addEventListener('activate', function(event) {
         }));
       })
   );
+  return self.clients.claim();
 });
 
 /*
 1. Caching strategy => Cache with network fallback.
 
-
+*/
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request)
@@ -64,7 +66,6 @@ self.addEventListener('fetch', function(event) {
   );
 });
 
-*/
 
 
 /* 
@@ -89,8 +90,6 @@ self.addEventListener('fetch', function (event) {
 
 Fetch events in SW will only succeed when the resource is cached.
 
-*/
-
 self.addEventListener('fetch', function (event) {
   event.respondWith(
     caches.match(event.request)
@@ -104,11 +103,14 @@ self.addEventListener('fetch', function (event) {
   )
 })
 
+*/
+
 
 /* 
 4. Caching strategy => Network, cache fallback
 
 The resource is searched on the network, if the search fails, it is searched in the cache.
+
 
 self.addEventListener ('fetch', function (event) {
   event.respondWith(
@@ -124,6 +126,7 @@ self.addEventListener ('fetch', function (event) {
                 return res
               } else {
                 console.log('Recurso en cache fallback no encontrado')
+                return caches.match('/offline.html');
               }
             })
       })
@@ -168,4 +171,60 @@ self.addEventListener ( 'fetch' , function (event) {
   );
 })
 
+*/
+
+/*
+6.
+
+
+self.addEventListener('fetch', function(event) {
+  
+  var url = event.request.url;
+  var pathurl = new URL(url).pathname;
+  //guardo el path del evento interceptado por el SW  
+
+  if (event.request.url.indexOf('https://httpbin.org/ip') > -1) {
+  //si el evento se encuentra dentro de los recursos especificados que tienen que estar siempre actualizados en cache
+    event.respondWith(
+      caches.open(CACHE_DYNAMIC_NAME)
+        .then(function (cache) {
+          return fetch(event.request)
+          //realiza el fetch
+            .then(function(response){
+            //almacena la respuesta en cache dinamica
+              cache.put(event.request.url,response.clone());
+              return response;
+          })
+        })
+    )
+  } else if (urlsToCache.includes(pathurl)) {
+    //se fija si el recurso se encuentra dentro de la cache estatica    
+      event.respondWith(
+        caches.match(pathurl)
+      );
+  } else {
+    //sino va a buscarlo en la cache haciendo fallback con la network
+    event.respondWith(
+      caches.match(event.request)
+        .then(function (res) {
+          if (res) {
+            return res;
+          } else {
+            return fetch (event.request)
+              .then(function(resp) {
+                return caches.open(CACHE_DYNAMIC_NAME)
+                  .then(function (cache){
+                    cache.put(event.request.url, resp.clone());
+                    return resp;
+                  })
+              })
+              .catch(function(){
+              //de fallar en el fetch redirecciono a fallbackpage
+                return caches.match('/offline.html');
+              })
+          }
+        })
+    )
+  }
+})
 */
